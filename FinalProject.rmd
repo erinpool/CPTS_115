@@ -1,0 +1,201 @@
+---
+title: "Final Project"
+author: "Erin Poole"
+date: "6/17/2021"
+output:
+  word_document: default
+---
+# Big Question
+The big question that I had for this data set: is there a correlation between community,race makeup, and violent crime rates?
+```{R}
+library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(tidyr)
+library(dplyr)
+library(Rmisc)
+library(tree)
+library(ISLR)
+library(factoextra)
+library(stats)
+library(devtools)
+library(ggbiplot)
+```
+## Data Sources
+The data set that I picked is communities and crime. The reason I picked this data set is because I'm the most interested in crime. The data source I'm using is multivariate, where the attribute characteristics are real, and the associated task is regression. The data source included attributes that were picked if there wase any plausible connection to crime, plus the attribe to be predicted, which was per capita violent crimes.
+## Processing Problems
+### Problem 1
+The first problem I had was figuring out how to clean up the data and how to name the columns. I didn't realize that the column names came with the data, so that was the first hurdle. I figured out how to associate the name of the column to the appropriate spot. The next hurdle was trying to figure out how to fill in the spaces that are emptied. I first turned the zeros into NA. There were many attempts at turning NA into a number. I finally found the formula that would turn NA into a mean by using the surrounding numbers to help fill in the gaps.
+```{R}
+finalp<-read.csv("./CrimesandCommunitiesdatafile.csv")
+names(finalp) <- c(
+  'state',
+  'county',
+  'community',
+  'communityname',
+  'fold',
+  'population',
+  'householdsize',
+  'racepctblack',
+  'racePctWhite',
+  'racePctAsian',
+  'racePctHisp',
+  'agePct12t21',
+  'agePct12t29',
+  'agePct16t24',
+  'agePct65up',
+  'numbUrban',
+  'pctUrban',
+  'medIncome',
+  'pctWWage',
+  'pctWFarmSelf',
+  'pctWInvInc',
+  'pctWSocSec',
+  'pctWPubAsst',
+  'pctWRetire',
+  'medFamInc',
+  'perCapInc',
+  'whitePerCap',
+  'blackPerCap',
+  'indianPerCap',
+  'AsianPerCap',
+  'OtherPerCap',
+  'HispPerCap',
+  'NumUnderPov',
+  'PctPopUnderPov',
+  'PctLess9thGrade',
+  'PctNotHSGrad',
+  'PctBSorMore',
+  'PctUnemployed',
+  'PctEmploy',
+  'PctEmplManu',
+  'PctEmplProfServ',
+  'PctOccupManu',
+  'PctOccupMgmtProf',
+  'MalePctDivorce',
+  'MalePctNevMarr',
+  'FemalePctDiv',
+  'TotalPctDiv',
+  'PersPerFam',
+  'PctFam2Par',
+  'PctKids2Par',
+  'PctYoungKids2Par',
+  'PctTeen2Par',
+  'PctWorkMomYoungKids',
+  'PctWorkMom',
+  'NumIlleg',
+  'PctIlleg',
+  'NumImmig',
+  'PctImmigRecent',
+  'PctImmigRec5',
+  'PctImmigRec8',
+  'PctImmigRec10',
+  'PctRecentImmig',
+  'PctRecImmig5',
+  'PctRecImmig8',
+  'PctRecImmig10',
+  'PctSpeakEnglOnly',
+  'PctNotSpeakEnglWell',
+  'PctLargHouseFam',
+  'PctLargHouseOccup',
+  'PersPerOccupHous',
+  'PersPerOwnOccHous',
+  'PersPerRentOccHous',
+  'PctPersOwnOccup',
+  'PctPersDenseHous',
+  'PctHousLess3BR',
+  'MedNumBR',
+  'HousVacant',
+  'PctHousOccup',
+  'PctHousOwnOcc',
+  'PctVacantBoarded',
+  'PctVacMore6Mos',
+  'MedYrHousBuilt',
+  'PctHousNoPhone',
+  'PctWOFullPlumb',
+  'OwnOccLowQuart',
+  'OwnOccMedVal',
+  'OwnOccHiQuart',
+  'RentLowQ',
+  'RentMedian',
+  'RentHighQ',
+  'MedRent',
+  'MedRentPctHousInc',
+  'MedOwnCostPctInc',
+  'MedOwnCostPctIncNoMtg',
+  'NumInShelters',
+  'NumStreet',
+  'PctForeignBorn',
+  'PctBornSameState',
+  'PctSameHouse85',
+  'PctSameCity85',
+  'PctSameState85',
+  'LemasSwornFT',
+  'LemasSwFTPerPop',
+  'LemasSwFTFieldOps',
+  'LemasSwFTFieldPerPop',
+  'LemasTotalReq',
+  'LemasTotReqPerPop',
+  'PolicReqPerOffic',
+  'PolicPerPop',
+  'RacialMatchCommPol',
+  'PctPolicWhite',
+  'PctPolicBlack',
+  'PctPolicHisp',
+  'PctPolicAsian',
+  'PctPolicMinor',
+  'OfficAssgnDrugUnits',
+  'NumKindsDrugsSeiz',
+  'PolicAveOTWorked',
+  'LandArea',
+  'PopDens',
+  'PctUsePubTrans',
+  'PolicCars',
+  'PolicOperBudg',
+  'LemasPctPolicOnPatr',
+  'LemasGangUnitDeploy',
+  'LemasPctOfficDrugUn',
+  'PolicBudgPerPop',
+  'ViolentCrimesPerPop') # Changed column names
+finalp[finalp=="?"] <- NA # Changed ? to NA
+finalp$county <- as.numeric(finalp$county)
+finalp$county[is.na(finalp$county)]<-mean(finalp$county, na.rm=TRUE)
+finalp$community<-as.numeric(finalp$community)
+finalp$community[is.na(finalp$community)]<-mean(finalp$community, na.rm=TRUE)
+```
+### Problem 2
+The second main problem I had was figuring out which graph would work best for the information I wanted to pull. However, I couldn't for a while figure out how to get the graphs to show up. After looking up different resources, I found the libraries that I needed to load into the script in order to run the graphs that I needed. 
+
+### Problem 3
+It was hard to figure out what question I wanted to ask. The column names were hard to understand and I couldn't figure out what they meant until I had to look them up. When I realized that the data wasn't organized by what crimes were committed, but just by population and breaking that down into smaller pieces, I had to change my question. After reading the data source description and going through the columns, I had to re-frame my question.
+
+# Visuializations
+```{R}
+model1<-lm(community~racepctblack+racePctWhite+racePctHisp+racePctAsian,data=finalp)
+summary(model1)
+plot(model1)
+model2<-lm(ViolentCrimesPerPop~racepctblack+racePctWhite+racePctHisp+racePctAsian,data=finalp)
+summary(model2)
+plot(model2)
+ggplot(finalp,aes(x=racepctblack,y=ViolentCrimesPerPop))+
+  geom_point()+
+  geom_smooth()
+ggplot(finalp,aes(x=racePctWhite,y=ViolentCrimesPerPop))+
+  geom_point()+
+  geom_smooth()
+ggplot(finalp,aes(x=racePctHisp,y=ViolentCrimesPerPop))+
+  geom_point()+
+  geom_smooth()
+ggplot(finalp,aes(x=racePctAsian,y=ViolentCrimesPerPop))+
+  geom_point()+
+  geom_smooth()
+```
+
+# Analysis
+For the Residuals vs. Fitted graph, since the data seems to follow a pattern, there might not be a linear relationship between the predictor and the outcome variables. On the Normal Q-Q, the points approximately fall along the reference line, so it is safe to assume normality. On the Scale-Location graph, the residuals are not spread equally along the ranges of predictors. They are all clustered to the right side.
+
+According to the linear graphs that are based on race, there is an apparent correlation between higher value of white population and the lower value of crime.
+
+# Conclusions
+According to the data as shown above, there are fewer violent crimes committed in predominantly white communities. The other analyses I would have liked to carry out is which violent crimes were the highest in which communities. It was would have been easier if there weren't any empty values, that way there wouldn't have been so much cleaning that needed to be done with the data.
+
